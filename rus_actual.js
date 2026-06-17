@@ -393,18 +393,9 @@
         }
 
         function sortBy(type) {
-            switch (setting('ru_actual_sort', 'popularity')) {
-                case 'release':
-                    return type === 'movie'
-                        ? 'primary_release_date.desc'
-                        : 'first_air_date.desc';
-
-                case 'rating':
-                    return 'vote_average.desc';
-
-                default:
-                    return 'popularity.desc';
-            }
+            return type === 'movie'
+                ? 'primary_release_date.desc'
+                : 'first_air_date.desc';
         }
 
         function buildMovieUrl() {
@@ -414,19 +405,12 @@
                 '&watch_region=RU' +
                 '&with_watch_monetization_types=flatrate|free' +
                 '&with_origin_country=RU' +
+                '&with_original_language=ru' +
                 '&primary_release_date.lte=' + today();
-
-            if (setting('ru_actual_russian_only', true)) {
-                url += '&with_original_language=ru';
-            }
 
             if (!setting('ru_actual_animation', false)) {
                 url += '&without_genres=16';
             }
-
-            url +=
-                '&vote_count.gte=' +
-                setting('ru_actual_votes', 20);
 
             return url;
         }
@@ -438,19 +422,12 @@
                 '&watch_region=RU' +
                 '&with_watch_monetization_types=flatrate|free' +
                 '&with_origin_country=RU' +
+                '&with_original_language=ru' +
                 '&first_air_date.lte=' + today();
-
-            if (setting('ru_actual_russian_only', true)) {
-                url += '&with_original_language=ru';
-            }
 
             if (!setting('ru_actual_animation', false)) {
                 url += '&without_genres=16';
             }
-
-            url +=
-                '&vote_count.gte=' +
-                setting('ru_actual_votes', 20);
 
             return url;
         }
