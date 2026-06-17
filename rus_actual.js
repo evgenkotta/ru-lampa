@@ -1,125 +1,91 @@
+/* Lampa.plugin */
 (function () {
     'use strict';
 
-    var ID = 'rus_actual_plugin';
+    if (window.rus_actual_loaded) return;
+    window.rus_actual_loaded = true;
 
-    if (window[ID]) return;
-    window[ID] = true;
+    function createRow(type, title) {
+        return {
+            name: 'ru_' + type,
+            title: title,
+            screen: ['main'],
+            index: -1000,
 
-    var DATE = new Date();
-    DATE.setFullYear(DATE.getFullYear() - 1);
+            call: function () {
+                return function (call) {
+                    var url;
 
-    var DATE_FROM =
-        DATE.getFullYear() + '-' +
-        ('0' + (DATE.getMonth() + 1)).slice(-2) + '-' +
-        ('0' + DATE.getDate()).slice(-2);
+                    if (type === 'movie') {
+                        url =
+                            'discover/movie' +
+                            '?sort_by=popularity.desc' +
+                            '&with_origin_country=RU' +
+                            '&with_original_language=ru' +
+                            '&without_genres=16' +
+                            '&vote_count.gte=10';
+                    }
+                    else {
+                        url =
+                            'discover/tv' +
+                            '?sort_by=popularity.desc' +
+                            '&with_origin_country=RU' +
+                            '&with_original_language=ru' +
+                            '&without_genres=16,10764,10767' +
+                            '&vote_count.gte=10';
+                    }
 
-    var BLOCKS = [
-        {
-            key: 'ru_movies',
-            title: '🇷🇺 Русские фильмы',
-            url:
-                'discover/movie' +
-                '?with_origin_country=RU' +
-                '&primary_release_date.gte=' + DATE_FROM +
-                '&sort_by=popularity.desc' +
-                '&vote_count.gte=50' +
-                '&without_genres=99'
-        },
-        {
-            key: 'ru_series',
-            title: '🇷🇺 Русские сериалы',
-            url:
-                'discover/tv' +
-                '?with_origin_country=RU' +
-                '&first_air_date.gte=' + DATE_FROM +
-                '&sort_by=popularity.desc' +
-                '&vote_count.gte=50' +
-                '&without_genres=99,10764,10767'
-        }
-    ];
+                    Lampa.Api.list(
+                        {
+                            source: 'tmdb',
+                            url: url
+                        },
+                        function (json) {
+                            if (!json || !json.results || !json.results.length) {
+                                return call();
+                            }
 
-    function exists(key) {
-        return document.querySelector(
-            '[data-rus-block="' + key + '"]'
-        );
-    }
+                            json.title = title;
 
-    function insertFirst(node) {
-        var container =
-            document.querySelector('.main__content');
+                            json.results = json.results
+                                .filter(function (item) {
+                                    return item.poster_path;
+                                })
+                                .filter(function (item) {
+                                    return item.overview;
+                                })
+                                .slice(0, 20);
 
-        if (!container) return;
+                            if (!json.results.length) {
+                                return call();
+                            }
 
-        container.insertBefore(
-            node,
-            container.firstElementChild
-        );
-    }
+                            json.results.forEach(function (item) {
+                                item.promo = item.overview;
+                                item.promo_title =
+                                    item.title ||
+                                    item.name ||
+                                    '';
+                            });
 
-    function addBlock(block) {
-        if (exists(block.key)) return;
-
-        Lampa.Api.partNext({
-            url: block.url,
-            onComplite: function (json) {
-                if (
-                    !json ||
-                    !json.results ||
-                    !json.results.length
-                ) {
-                    return;
-                }
-
-                var row =
-                    Lampa.InteractionCategory({
-                        title: block.title,
-                        results: json.results
-                    });
-
-                var element = row.render()[0];
-
-                if (!element) return;
-
-                element.setAttribute(
-                    'data-rus-block',
-                    block.key
-                );
-
-                insertFirst(element);
+                            call(json);
+                        },
+                        function () {
+                            call();
+                        }
+                    );
+                };
             }
-        });
+        };
     }
 
-    function build() {
-        var activity =
-            Lampa.Activity.active();
-
-        if (
-            !activity ||
-            activity.component !== 'main'
-        ) {
-            return;
-        }
-
-        BLOCKS.forEach(addBlock);
-    }
-
-    Lampa.Listener.follow(
-        'activity',
-        function (e) {
-            if (e.type === 'ready') {
-                setTimeout(build, 300);
-            }
-        }
+    Lampa.ContentRows.add(
+        createRow('movie', 'Русские фильмы')
     );
 
-    document.addEventListener(
-        'visibilitychange',
-        function () {
-            if (!document.hidden) {
-                setTimeout(build, 300);
-            }
-        }
+    Lampa.ContentRows.add(
+        createRow('tv', 'Русские сериалы')
     );
+
+    console.log('[Rus Actual] loaded');
 })();
