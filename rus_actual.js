@@ -108,33 +108,6 @@
             });
         }
 
-        function isArray(value) {
-            return Object.prototype.toString.call(value) === '[object Array]';
-        }
-
-        function activeMainComponent() {
-            var active;
-
-            if (
-                !Lampa.Activity ||
-                typeof Lampa.Activity.active !== 'function'
-            ) {
-                return null;
-            }
-
-            active = Lampa.Activity.active();
-
-            if (!active || active.component !== 'main') return null;
-            if (!active.activity || !active.activity.component) return null;
-
-            return active.activity.component;
-        }
-
-        function componentHost(component) {
-            if (!component || !component.html) return null;
-
-            return component.html[0] || component.html;
-        }
 
         function moveComponentItemsToTop() {
             var component = activeMainComponent();
@@ -327,23 +300,6 @@
             }
         });
 
-        Lampa.Listener.follow('activity', function (e) {
-            if (
-                e &&
-                e.type === 'start' &&
-                e.component === 'main'
-            ) {
-                moveComponentItemsToTop();
-
-                requestAnimationFrame(function () {
-                    moveComponentItemsToTop();
-
-                    setTimeout(function () {
-                        moveComponentItemsToTop();
-                    }, 300);
-                });
-            }
-        });
 
         console.log('[Ru Actual] loaded');
     });
