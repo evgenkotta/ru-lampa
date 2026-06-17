@@ -211,7 +211,7 @@
             name: 'ru_actual_movies',
             title: 'Русские фильмы',
             screen: ['main'],
-            index: 3,
+            index: 0,
 
             call: function () {
                 if (!setting('ru_actual_movies', true))
@@ -228,7 +228,7 @@
             name: 'ru_actual_tv',
             title: 'Русские сериалы',
             screen: ['main'],
-            index: 4,
+            index: 1,
 
             call: function () {
                 if (!setting('ru_actual_tv', true))
@@ -241,6 +241,53 @@
             }
         });
 
+
+        function placeRowsAfterWatching() {
+            var active = Lampa.Activity && Lampa.Activity.active
+                ? Lampa.Activity.active()
+                : null;
+            var component = active && active.activity
+                ? active.activity.component
+                : null;
+
+            if (!component || !component.items) return;
+
+            var items = component.items;
+            var watching = -1;
+            var movies = -1;
+            var tv = -1;
+
+            items.forEach(function (item, i) {
+                var title = item && item.data ? item.data.title : '';
+
+                if (title === 'Сейчас смотрят') watching = i;
+                if (title === 'Русские фильмы') movies = i;
+                if (title === 'Русские сериалы') tv = i;
+            });
+
+            if (watching === -1 || movies === -1 || tv === -1) return;
+
+            var moviesItem = items.splice(movies, 1)[0];
+            if (movies < watching) watching--;
+            items.splice(watching + 1, 0, moviesItem);
+
+            tv = items.findIndex(function (item) {
+                return item && item.data && item.data.title === 'Русские сериалы';
+            });
+
+            var tvItem = items.splice(tv, 1)[0];
+            movies = items.findIndex(function (item) {
+                return item && item.data && item.data.title === 'Русские фильмы';
+            });
+            items.splice(movies + 1, 0, tvItem);
+        }
+
+        Lampa.Listener.follow('activity', function (e) {
+            if (e && e.type === 'start' && e.component === 'main') {
+                setTimeout(placeRowsAfterWatching, 0);
+                setTimeout(placeRowsAfterWatching, 300);
+            }
+        });
 
         console.log('[Ru Actual] loaded');
     });
