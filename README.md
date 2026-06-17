@@ -20,12 +20,6 @@
 https://evgenkotta.github.io/ru-lampa/rus_actual.js
 ```
 
-При обновлении плагина рекомендуется использовать параметр версии:
-
-```text
-https://evgenkotta.github.io/ru-lampa/rus_actual.js?v=2
-```
-
 ## Настройки
 
 Плагин позволяет:
