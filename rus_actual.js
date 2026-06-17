@@ -89,53 +89,6 @@
                 }
             });
 
-            Lampa.SettingsApi.addParam({
-                component: 'ru_actual',
-                param: {
-                    name: 'ru_actual_russian_only',
-                    type: 'trigger',
-                    default: true
-                },
-                field: {
-                    name: 'Только русский язык'
-                }
-            });
-
-            Lampa.SettingsApi.addParam({
-                component: 'ru_actual',
-                param: {
-                    name: 'ru_actual_votes',
-                    type: 'select',
-                    values: {
-                        0: '0',
-                        5: '5',
-                        10: '10',
-                        20: '20',
-                        50: '50'
-                    },
-                    default: 20
-                },
-                field: {
-                    name: 'Минимум голосов'
-                }
-            });
-
-            Lampa.SettingsApi.addParam({
-                component: 'ru_actual',
-                param: {
-                    name: 'ru_actual_sort',
-                    type: 'select',
-                    values: {
-                        popularity: 'Популярные',
-                        release: 'Новые',
-                        rating: 'По рейтингу'
-                    },
-                    default: 'popularity'
-                },
-                field: {
-                    name: 'Сортировка'
-                }
-            });
 
             Lampa.SettingsApi.addParam({
                 component: 'ru_actual',
