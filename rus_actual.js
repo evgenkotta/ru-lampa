@@ -154,48 +154,51 @@
                 }
             });
         }
+
         function moveRowsToTop() {
             var body = document.querySelector('.scroll__body');
             if (!body) return;
-        
+
             var rows = Array.from(
                 body.querySelectorAll('.items-line')
             );
-        
+
             var movies = rows.find(function (row) {
                 var title = row.querySelector('.items-line__title');
-        
+
                 return (
                     title &&
                     title.textContent.trim() ===
                         'Русские фильмы'
                 );
             });
-        
+
             var tv = rows.find(function (row) {
                 var title = row.querySelector('.items-line__title');
-        
+
                 return (
                     title &&
                     title.textContent.trim() ===
                         'Русские сериалы'
                 );
             });
-        
-            if (movies) {
+
+            if (movies && body.firstChild !== movies) {
                 body.insertBefore(
                     movies,
                     body.firstChild
                 );
             }
-        
+
             if (tv) {
                 if (movies) {
-                    body.insertBefore(
-                        tv,
-                        movies.nextSibling
-                    );
-                } else {
+                    if (movies.nextSibling !== tv) {
+                        body.insertBefore(
+                            tv,
+                            movies.nextSibling
+                        );
+                    }
+                } else if (body.firstChild !== tv) {
                     body.insertBefore(
                         tv,
                         body.firstChild
@@ -203,11 +206,64 @@
                 }
             }
         }
+
+        var rowsObserver;
+        var observedBody;
+
+        function observeRows() {
+            var body = document.querySelector('.scroll__body');
+
+            if (!body) return;
+
+            if (rowsObserver && observedBody === body) {
+                moveRowsToTop();
+                return;
+            }
+
+            if (rowsObserver) {
+                rowsObserver.disconnect();
+            }
+
+            observedBody = body;
+            rowsObserver = new MutationObserver(function () {
+                moveRowsToTop();
+            });
+
+            rowsObserver.observe(body, {
+                childList: true,
+                subtree: true
+            });
+
+            moveRowsToTop();
+        }
+
+        function today() {
+            return new Date().toISOString().slice(0, 10);
+        }
+
+        function sortBy(type) {
+            switch (setting('ru_actual_sort', 'popularity')) {
+                case 'release':
+                    return type === 'movie'
+                        ? 'primary_release_date.desc'
+                        : 'first_air_date.desc';
+
+                case 'rating':
+                    return 'vote_average.desc';
+
+                default:
+                    return 'popularity.desc';
+            }
+        }
+
         function buildMovieUrl() {
             var url =
                 'discover/movie' +
-                '?watch_region=RU' +
-                '&with_origin_country=RU';
+                '?sort_by=' + sortBy('movie') +
+                '&watch_region=RU' +
+                '&with_watch_monetization_types=flatrate|free' +
+                '&with_origin_country=RU' +
+                '&primary_release_date.lte=' + today();
 
             if (setting('ru_actual_russian_only', true)) {
                 url += '&with_original_language=ru';
@@ -220,19 +276,6 @@
             url +=
                 '&vote_count.gte=' +
                 setting('ru_actual_votes', 20);
-
-            switch (setting('ru_actual_sort', 'popularity')) {
-                case 'release':
-                    url += '&sort_by=primary_release_date.desc';
-                    break;
-
-                case 'rating':
-                    url += '&sort_by=vote_average.desc';
-                    break;
-
-                default:
-                    url += '&sort_by=popularity.desc';
-            }
 
             return url;
         }
@@ -240,8 +283,11 @@
         function buildTvUrl() {
             var url =
                 'discover/tv' +
-                '?watch_region=RU' +
-                '&with_origin_country=RU';
+                '?sort_by=' + sortBy('tv') +
+                '&watch_region=RU' +
+                '&with_watch_monetization_types=flatrate|free' +
+                '&with_origin_country=RU' +
+                '&first_air_date.lte=' + today();
 
             if (setting('ru_actual_russian_only', true)) {
                 url += '&with_original_language=ru';
@@ -255,20 +301,34 @@
                 '&vote_count.gte=' +
                 setting('ru_actual_votes', 20);
 
-            switch (setting('ru_actual_sort', 'popularity')) {
-                case 'release':
-                    url += '&sort_by=first_air_date.desc';
-                    break;
-
-                case 'rating':
-                    url += '&sort_by=vote_average.desc';
-                    break;
-
-                default:
-                    url += '&sort_by=popularity.desc';
-            }
-
             return url;
+        }
+
+        function releaseDate(card) {
+            return card.release_date || card.first_air_date || '';
+        }
+
+        function normalizeResults(results) {
+            var exists = {};
+
+            results = results.filter(function (card) {
+                var title = card.title || card.name || '';
+                var year = releaseDate(card).slice(0, 4);
+                var key = title.toLowerCase() + '|' + year;
+
+                if (!card.poster_path) return false;
+                if (exists[key]) return false;
+
+                exists[key] = true;
+
+                return true;
+            });
+
+            results.sort(function (a, b) {
+                return releaseDate(b).localeCompare(releaseDate(a));
+            });
+
+            return results;
         }
 
         function createRow(title, url) {
@@ -286,7 +346,8 @@
                             setting('ru_actual_limit', 20)
                         );
 
-                        json.results = json.results.slice(0, limit);
+                        json.results = normalizeResults(json.results)
+                            .slice(0, limit);
 
                         json.title = title;
                         json.name = title;
@@ -339,19 +400,19 @@
                 );
             }
         });
-        
+
         Lampa.Listener.follow('activity', function (e) {
             if (
                 e &&
                 e.type === 'start' &&
                 e.component === 'main'
             ) {
-                setTimeout(moveRowsToTop, 300);
-                setTimeout(moveRowsToTop, 700);
-                setTimeout(moveRowsToTop, 1200);
-                setTimeout(moveRowsToTop, 2000);
+                observeRows();
             }
         });
+
+        observeRows();
+
         console.log('[Ru Actual] loaded');
     });
 })();
