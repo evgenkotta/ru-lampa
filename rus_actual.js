@@ -211,7 +211,7 @@
             name: 'ru_actual_movies',
             title: 'Русские фильмы',
             screen: ['main'],
-            index: 5,
+            index: 3,
 
             call: function () {
                 if (!setting('ru_actual_movies', true))
@@ -228,7 +228,7 @@
             name: 'ru_actual_tv',
             title: 'Русские сериалы',
             screen: ['main'],
-            index: 6,
+            index: 4,
 
             call: function () {
                 if (!setting('ru_actual_tv', true))
