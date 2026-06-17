@@ -42,14 +42,15 @@
                     y="56"
                     text-anchor="middle"
                     dominant-baseline="middle"
-                    font-size="38"
+                    font-size="36"
                     font-family="Arial, sans-serif"
                     font-weight="700"
                     fill="currentColor"
                   >
                     RU
                   </text>
-                </svg>`
+                </svg>
+                `
             });
 
             Lampa.SettingsApi.addParam({
