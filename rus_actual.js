@@ -24,7 +24,30 @@
             Lampa.SettingsApi.addComponent({
                 component: 'ru_actual',
                 name: 'Русские фильмы и сериалы',
-                icon: '<svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7z"/></svg>'
+                icon: `
+                <svg viewBox="0 0 100 100">
+                  <rect
+                    x="10"
+                    y="10"
+                    width="80"
+                    height="80"
+                    rx="24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="6"
+                  />
+                  <text
+                    x="50"
+                    y="57"
+                    text-anchor="middle"
+                    font-size="50"
+                    font-weight="900"
+                    font-family="Arial, sans-serif"
+                    fill="currentColor"
+                  >
+                    RU
+                  </text>
+                </svg>`
             });
 
             Lampa.SettingsApi.addParam({
