@@ -25,24 +25,26 @@
                 component: 'ru_actual',
                 name: 'Русские фильмы и сериалы',
                 icon: `
-                <svg viewBox="0 0 100 100">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                   <rect
-                    x="10"
-                    y="10"
-                    width="80"
-                    height="80"
-                    rx="24"
+                    x="12"
+                    y="12"
+                    width="76"
+                    height="76"
+                    rx="22"
                     fill="none"
                     stroke="currentColor"
                     stroke-width="6"
                   />
+                
                   <text
                     x="50"
-                    y="57"
+                    y="56"
                     text-anchor="middle"
-                    font-size="50"
-                    font-weight="900"
+                    dominant-baseline="middle"
+                    font-size="38"
                     font-family="Arial, sans-serif"
+                    font-weight="700"
                     fill="currentColor"
                   >
                     RU
