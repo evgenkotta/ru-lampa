@@ -136,67 +136,6 @@
             return component.html[0] || component.html;
         }
 
-        function findRowsContainer() {
-            var component = activeMainComponent();
-            var host = componentHost(component);
-            var body = null;
-
-            if (host && host.querySelector) {
-                body = host.querySelector('.scroll__body');
-            }
-
-            return body || document.querySelector('.scroll__body') || host;
-        }
-
-        function findRows() {
-            var component = activeMainComponent();
-            var host = componentHost(component);
-            var rows = [];
-            var body;
-            var i;
-
-            if (host && host.querySelectorAll) {
-                rows = rows.concat(
-                    Array.from(host.querySelectorAll('.items-line'))
-                );
-            }
-
-            body = document.querySelector('.scroll__body');
-
-            if (body && body.querySelectorAll) {
-                rows = rows.concat(
-                    Array.from(body.querySelectorAll('.items-line'))
-                );
-            }
-
-            for (i = rows.length - 1; i > 0; i--) {
-                if (rows.indexOf(rows[i]) !== i) {
-                    rows.splice(i, 1);
-                }
-            }
-
-            return rows;
-        }
-
-        function firstItemsLine(container) {
-            var i;
-
-            if (!container || !container.children) return null;
-
-            for (i = 0; i < container.children.length; i++) {
-                if (
-                    container.children[i] &&
-                    /(^|\s)items-line(\s|$)/.test(
-                        container.children[i].className || ''
-                    )
-                ) {
-                    return container.children[i];
-                }
-            }
-
-            return null;
-        }
-
         function moveComponentItemsToTop() {
             var component = activeMainComponent();
             var i;
@@ -241,104 +180,6 @@
                 item = component.items.splice(tvIndex, 1)[0];
                 component.items.splice(1, 0, item);
             }
-        }
-
-        function moveRowsToTop() {
-            var container = findRowsContainer();
-            if (!container) return;
-
-            var rows = findRows();
-            var firstLine = firstItemsLine(container);
-
-            var movies = rows.find(function (row) {
-                var title = row.querySelector('.items-line__title');
-
-                return (
-                    title &&
-                    title.textContent.trim() ===
-                        'Русские фильмы'
-                );
-            });
-
-            var tv = rows.find(function (row) {
-                var title = row.querySelector('.items-line__title');
-
-                return (
-                    title &&
-                    title.textContent.trim() ===
-                        'Русские сериалы'
-                );
-            });
-
-            if (movies && firstLine !== movies) {
-                container.insertBefore(
-                    movies,
-                    firstLine || container.firstChild
-                );
-            }
-
-            if (tv) {
-                if (movies) {
-                    if (movies.nextSibling !== tv) {
-                        container.insertBefore(
-                            tv,
-                            movies.nextSibling
-                        );
-                    }
-                } else if (firstItemsLine(container) !== tv) {
-                    container.insertBefore(
-                        tv,
-                        firstItemsLine(container) || container.firstChild
-                    );
-                }
-            }
-
-            moveComponentItemsToTop();
-        }
-
-        var rowsObserver;
-        var observedBody;
-        var pageObserver;
-
-        function observePage() {
-            if (pageObserver || !document.body) return;
-
-            pageObserver = new MutationObserver(function () {
-                observeRows();
-                moveRowsToTop();
-            });
-
-            pageObserver.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        }
-
-        function observeRows() {
-            var body = findRowsContainer();
-
-            if (!body) return;
-
-            if (rowsObserver && observedBody === body) {
-                moveRowsToTop();
-                return;
-            }
-
-            if (rowsObserver) {
-                rowsObserver.disconnect();
-            }
-
-            observedBody = body;
-            rowsObserver = new MutationObserver(function () {
-                moveRowsToTop();
-            });
-
-            rowsObserver.observe(body, {
-                childList: true,
-                subtree: true
-            });
-
-            moveRowsToTop();
         }
 
         function today() {
@@ -492,13 +333,9 @@
                 e.type === 'start' &&
                 e.component === 'main'
             ) {
-                observePage();
-                observeRows();
+                moveComponentItemsToTop();
             }
         });
-
-        observePage();
-        observeRows();
 
         console.log('[Ru Actual] loaded');
     });
