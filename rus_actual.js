@@ -334,6 +334,14 @@
                 e.component === 'main'
             ) {
                 moveComponentItemsToTop();
+
+                requestAnimationFrame(function () {
+                    moveComponentItemsToTop();
+
+                    setTimeout(function () {
+                        moveComponentItemsToTop();
+                    }, 300);
+                });
             }
         });
 
