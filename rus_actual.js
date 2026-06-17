@@ -109,52 +109,6 @@
         }
 
 
-        function moveComponentItemsToTop() {
-            var component = activeMainComponent();
-            var i;
-            var title;
-            var moviesIndex = -1;
-            var tvIndex = -1;
-            var item;
-
-            if (!component || !isArray(component.items)) return;
-
-            for (i = 0; i < component.items.length; i++) {
-                title = component.items[i] &&
-                    component.items[i].data
-                    ? component.items[i].data.title
-                    : '';
-
-                if (title === 'Русские фильмы') moviesIndex = i;
-                if (title === 'Русские сериалы') tvIndex = i;
-            }
-
-            if (moviesIndex > 0) {
-                item = component.items.splice(moviesIndex, 1)[0];
-                component.items.splice(0, 0, item);
-
-                if (tvIndex >= 0 && tvIndex < moviesIndex) {
-                    tvIndex++;
-                }
-            }
-
-            tvIndex = -1;
-
-            for (i = 0; i < component.items.length; i++) {
-                title = component.items[i] &&
-                    component.items[i].data
-                    ? component.items[i].data.title
-                    : '';
-
-                if (title === 'Русские сериалы') tvIndex = i;
-            }
-
-            if (tvIndex > 1) {
-                item = component.items.splice(tvIndex, 1)[0];
-                component.items.splice(1, 0, item);
-            }
-        }
-
         function today() {
             return new Date().toISOString().slice(0, 10);
         }
@@ -165,32 +119,20 @@
                 : 'first_air_date.desc';
         }
 
-        function buildMovieUrl() {
+        function buildUrl(type) {
+            var isMovie = type === 'movie';
             var url =
-                'discover/movie' +
-                '?sort_by=' + sortBy('movie') +
+                'discover/' + type +
+                '?sort_by=' + sortBy(type) +
                 '&watch_region=RU' +
                 '&with_watch_monetization_types=flatrate|free' +
                 '&with_origin_country=RU' +
                 '&with_original_language=ru' +
-                '&primary_release_date.lte=' + today();
-
-            if (!setting('ru_actual_animation', false)) {
-                url += '&without_genres=16';
-            }
-
-            return url;
-        }
-
-        function buildTvUrl() {
-            var url =
-                'discover/tv' +
-                '?sort_by=' + sortBy('tv') +
-                '&watch_region=RU' +
-                '&with_watch_monetization_types=flatrate|free' +
-                '&with_origin_country=RU' +
-                '&with_original_language=ru' +
-                '&first_air_date.lte=' + today();
+                '&' + (
+                    isMovie
+                        ? 'primary_release_date.lte='
+                        : 'first_air_date.lte='
+                ) + today();
 
             if (!setting('ru_actual_animation', false)) {
                 url += '&without_genres=16';
@@ -217,8 +159,7 @@
 
                 exists[key] = true;
                 card.promo = card.overview;
-                card.promo_title =
-                    card.title || card.name;
+                card.promo_title = card.title || card.name;
 
                 return true;
             });
@@ -270,7 +211,7 @@
             name: 'ru_actual_movies',
             title: 'Русские фильмы',
             screen: ['main'],
-            index: -99999,
+            index: 5,
 
             call: function () {
                 if (!setting('ru_actual_movies', true))
@@ -278,7 +219,7 @@
 
                 return createRow(
                     'Русские фильмы',
-                    buildMovieUrl()
+                    buildUrl('movie')
                 );
             }
         });
@@ -287,7 +228,7 @@
             name: 'ru_actual_tv',
             title: 'Русские сериалы',
             screen: ['main'],
-            index: -99998,
+            index: 6,
 
             call: function () {
                 if (!setting('ru_actual_tv', true))
@@ -295,7 +236,7 @@
 
                 return createRow(
                     'Русские сериалы',
-                    buildTvUrl()
+                    buildUrl('tv')
                 );
             }
         });
