@@ -1,104 +1,125 @@
 (function () {
     'use strict';
 
-    var PLUGIN_ID = 'rus_actual_rows';
+    var ID = 'rus_actual_plugin';
 
-    if (window[PLUGIN_ID]) return;
-    window[PLUGIN_ID] = true;
+    if (window[ID]) return;
+    window[ID] = true;
 
-    function getDateYearAgo() {
-        var d = new Date();
-        d.setFullYear(d.getFullYear() - 1);
+    var DATE = new Date();
+    DATE.setFullYear(DATE.getFullYear() - 1);
 
-        var y = d.getFullYear();
-        var m = ('0' + (d.getMonth() + 1)).slice(-2);
-        var day = ('0' + d.getDate()).slice(-2);
+    var DATE_FROM =
+        DATE.getFullYear() + '-' +
+        ('0' + (DATE.getMonth() + 1)).slice(-2) + '-' +
+        ('0' + DATE.getDate()).slice(-2);
 
-        return y + '-' + m + '-' + day;
-    }
-
-    var DATE_FROM = getDateYearAgo();
-
-    var SECTIONS = [
+    var BLOCKS = [
         {
+            key: 'ru_movies',
             title: '🇷🇺 Русские фильмы',
             url:
-                'discover/movie?' +
-                'with_origin_country=RU' +
+                'discover/movie' +
+                '?with_origin_country=RU' +
                 '&primary_release_date.gte=' + DATE_FROM +
                 '&sort_by=popularity.desc' +
-                '&vote_count.gte=50',
-            className: 'rus-actual-movies'
+                '&vote_count.gte=50' +
+                '&without_genres=99'
         },
         {
+            key: 'ru_series',
             title: '🇷🇺 Русские сериалы',
             url:
-                'discover/tv?' +
-                'with_origin_country=RU' +
+                'discover/tv' +
+                '?with_origin_country=RU' +
                 '&first_air_date.gte=' + DATE_FROM +
                 '&sort_by=popularity.desc' +
-                '&vote_count.gte=50',
-            className: 'rus-actual-series'
+                '&vote_count.gte=50' +
+                '&without_genres=99,10764,10767'
         }
     ];
 
-    function rowExists(className) {
-        return document.querySelector('.' + className);
+    function exists(key) {
+        return document.querySelector(
+            '[data-rus-block="' + key + '"]'
+        );
     }
 
-    function createRow(section) {
-        if (rowExists(section.className)) return;
+    function insertFirst(node) {
+        var container =
+            document.querySelector('.main__content');
+
+        if (!container) return;
+
+        container.insertBefore(
+            node,
+            container.firstElementChild
+        );
+    }
+
+    function addBlock(block) {
+        if (exists(block.key)) return;
 
         Lampa.Api.partNext({
-            url: section.url,
+            url: block.url,
             onComplite: function (json) {
-                if (!json || !json.results || !json.results.length) return;
+                if (
+                    !json ||
+                    !json.results ||
+                    !json.results.length
+                ) {
+                    return;
+                }
 
-                var row = Lampa.InteractionCategory({
-                    title: section.title,
-                    results: json.results
-                });
-
-                row.addClass(section.className);
-
-                var content = document.querySelector('.main__content');
-                if (!content) return;
+                var row =
+                    Lampa.InteractionCategory({
+                        title: block.title,
+                        results: json.results
+                    });
 
                 var element = row.render()[0];
 
                 if (!element) return;
 
-                content.insertBefore(
-                    element,
-                    content.firstElementChild
+                element.setAttribute(
+                    'data-rus-block',
+                    block.key
                 );
+
+                insertFirst(element);
             }
         });
     }
 
-    function addRows() {
-        SECTIONS.forEach(createRow);
+    function build() {
+        var activity =
+            Lampa.Activity.active();
+
+        if (
+            !activity ||
+            activity.component !== 'main'
+        ) {
+            return;
+        }
+
+        BLOCKS.forEach(addBlock);
     }
 
-    Lampa.Listener.follow('activity', function (event) {
-        if (event.type !== 'ready') return;
-
-        var activity = Lampa.Activity.active();
-        if (!activity || activity.component !== 'main') return;
-
-        setTimeout(addRows, 300);
-    });
-
-    Lampa.Listener.follow('full', function () {
-        setTimeout(function () {
-            var activity = Lampa.Activity.active();
-
-            if (
-                activity &&
-                activity.component === 'main'
-            ) {
-                addRows();
+    Lampa.Listener.follow(
+        'activity',
+        function (e) {
+            if (e.type === 'ready') {
+                setTimeout(build, 300);
             }
-        }, 300);
-    });
+        }
+    );
+
+    document.addEventListener(
+        'visibilitychange',
+        function () {
+            if (!document.hidden) {
+                setTimeout(build, 300);
+            }
+        }
+    );
 })();
