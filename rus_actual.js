@@ -411,12 +411,9 @@
             var url =
                 'discover/movie' +
                 '?sort_by=' + sortBy('movie') +
-                '&include_adult=false' +
                 '&watch_region=RU' +
                 '&with_watch_monetization_types=flatrate|free' +
                 '&with_origin_country=RU' +
-                '&certification_country=RU' +
-                '&certification.lte=16' +
                 '&primary_release_date.lte=' + today();
 
             if (setting('ru_actual_russian_only', true)) {
@@ -438,12 +435,9 @@
             var url =
                 'discover/tv' +
                 '?sort_by=' + sortBy('tv') +
-                '&include_adult=false' +
                 '&watch_region=RU' +
                 '&with_watch_monetization_types=flatrate|free' +
                 '&with_origin_country=RU' +
-                '&certification_country=RU' +
-                '&certification.lte=16' +
                 '&first_air_date.lte=' + today();
 
             if (setting('ru_actual_russian_only', true)) {
@@ -474,10 +468,13 @@
                 var key = title.toLowerCase() + '|' + year;
 
                 if (!card.poster_path) return false;
-                if (card.adult) return false;
+                // if (card.adult) return false;
                 if (exists[key]) return false;
 
                 exists[key] = true;
+                card.promo = card.overview;
+                card.promo_title =
+                    card.title || card.name;
 
                 return true;
             });
