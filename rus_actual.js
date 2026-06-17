@@ -154,7 +154,55 @@
                 }
             });
         }
-
+        function moveRowsToTop() {
+            var body = document.querySelector('.scroll__body');
+            if (!body) return;
+        
+            var rows = Array.from(
+                body.querySelectorAll('.items-line')
+            );
+        
+            var movies = rows.find(function (row) {
+                var title = row.querySelector('.items-line__title');
+        
+                return (
+                    title &&
+                    title.textContent.trim() ===
+                        'Русские фильмы'
+                );
+            });
+        
+            var tv = rows.find(function (row) {
+                var title = row.querySelector('.items-line__title');
+        
+                return (
+                    title &&
+                    title.textContent.trim() ===
+                        'Русские сериалы'
+                );
+            });
+        
+            if (movies) {
+                body.insertBefore(
+                    movies,
+                    body.firstChild
+                );
+            }
+        
+            if (tv) {
+                if (movies) {
+                    body.insertBefore(
+                        tv,
+                        movies.nextSibling
+                    );
+                } else {
+                    body.insertBefore(
+                        tv,
+                        body.firstChild
+                    );
+                }
+            }
+        }
         function buildMovieUrl() {
             var url =
                 'discover/movie' +
@@ -262,7 +310,7 @@
             name: 'ru_actual_movies',
             title: 'Русские фильмы',
             screen: ['main'],
-            index: -1000,
+            index: -99999,
 
             call: function () {
                 if (!setting('ru_actual_movies', true))
@@ -279,7 +327,7 @@
             name: 'ru_actual_tv',
             title: 'Русские сериалы',
             screen: ['main'],
-            index: -999,
+            index: -99998,
 
             call: function () {
                 if (!setting('ru_actual_tv', true))
@@ -291,7 +339,19 @@
                 );
             }
         });
-
+        
+        Lampa.Listener.follow('activity', function (e) {
+            if (
+                e &&
+                e.type === 'start' &&
+                e.component === 'main'
+            ) {
+                setTimeout(moveRowsToTop, 300);
+                setTimeout(moveRowsToTop, 700);
+                setTimeout(moveRowsToTop, 1200);
+                setTimeout(moveRowsToTop, 2000);
+            }
+        });
         console.log('[Ru Actual] loaded');
     });
 })();
